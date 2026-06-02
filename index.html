@@ -1247,7 +1247,12 @@ function saveWeight(week, dayIdx, exIdx, setIdx, val) {
 }
 
 function isWeightedExercise(name) {
-  const keywords = ['Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable'];
+  const keywords = [
+    'Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable',
+    'Face Pull','Tricep Dips','Bulgarian Split Squat','Box Jump','Tricep'
+  ];
+  const bodyweight = ['Bodyweight Squat','Sit-up','Leg Raise','Plank','Pull-ups (strict)','Push-ups (strict)','Incline Push-up','Negative Pull','Dead Hang','Easy','Fatigue','Jog','Run','Sprint','Stride','Jump Squat','High Knee','Butt Kick'];
+  if (bodyweight.some(k => name.includes(k))) return false;
   return keywords.some(k => name.includes(k));
 }
 

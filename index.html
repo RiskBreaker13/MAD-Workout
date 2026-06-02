@@ -1119,9 +1119,12 @@ function renderWorkout() {
   workout.warmup.forEach((item, i) => {
     const key = `${week}-${dayIdx}-warmup-${i}`;
     const checked = state.checklist[key] ? 'checked' : '';
+    const yt = checklistYoutubeUrl(item);
     html += `<li class="${checked}" onclick="toggleChecklist('${key}', this)">
       <div class="check-box">${state.checklist[key] ? '✓' : ''}</div>
-      <span class="check-text">${item}</span>
+      <div style="flex:1"><span class="check-text">${item}</span>
+        <a class="demo-btn" style="display:inline-flex;margin-top:6px;font-size:11px;padding:5px 10px" href="${yt}" target="_blank" onclick="event.stopPropagation()">▶ Demo</a>
+      </div>
     </li>`;
   });
   html += `</ul></div>`;
@@ -1138,9 +1141,12 @@ function renderWorkout() {
   workout.cooldown.forEach((item, i) => {
     const key = `${week}-${dayIdx}-cooldown-${i}`;
     const checked = state.checklist[key] ? 'checked' : '';
+    const yt = checklistYoutubeUrl(item);
     html += `<li class="${checked}" onclick="toggleChecklist('${key}', this)">
       <div class="check-box">${state.checklist[key] ? '✓' : ''}</div>
-      <span class="check-text">${item}</span>
+      <div style="flex:1"><span class="check-text">${item}</span>
+        <a class="demo-btn" style="display:inline-flex;margin-top:6px;font-size:11px;padding:5px 10px" href="${yt}" target="_blank" onclick="event.stopPropagation()">▶ Demo</a>
+      </div>
     </li>`;
   });
   html += `</ul></div>`;
@@ -1243,6 +1249,50 @@ function saveWeight(week, dayIdx, exIdx, setIdx, val) {
 function isWeightedExercise(name) {
   const keywords = ['Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable'];
   return keywords.some(k => name.includes(k));
+}
+
+function checklistYoutubeUrl(item) {
+  const overrides = {
+    '5 min easy row or jump rope': 'how+to+jump+rope+warm+up',
+    'Band pull-aparts': 'band+pull+aparts+exercise+tutorial',
+    'Dead hang holds': 'dead+hang+tutorial+grip+strength',
+    'Arm circles, shoulder CARs': 'shoulder+CARs+controlled+articular+rotation+tutorial',
+    '5 min light bike or walk': 'warm+up+walk+light+bike+tutorial',
+    'Hip circles': 'hip+circles+warm+up+mobility',
+    'Leg swings front/back and lateral': 'leg+swings+warm+up+tutorial',
+    'Bodyweight squat to depth': 'bodyweight+squat+warm+up+form',
+    'Shoulder pass-throughs with PVC': 'PVC+shoulder+pass+through+tutorial',
+    'Slow push-up warm-up': 'push+up+warm+up+tutorial',
+    'Wrist circles': 'wrist+circles+warm+up+mobility',
+    '10 min easy jog': 'easy+jog+warm+up+running',
+    'High knees': 'high+knees+warm+up+tutorial',
+    'Butt kicks': 'butt+kicks+warm+up+tutorial',
+    'A-skips': 'A+skips+running+drill+tutorial',
+    '2–3 build-up strides at 75% effort': 'running+strides+warm+up+tutorial',
+    '5 min walk': 'walking+warm+up+tutorial',
+    'Dynamic leg swings': 'dynamic+leg+swings+warm+up',
+    'Easy 5 min jog to ease into pace': 'easy+jog+warm+up+running',
+    '10 min easy bike or light jog': 'warm+up+light+jog+tutorial',
+    'Glute bridges': 'glute+bridge+exercise+tutorial',
+    'Lat stretch on rack': 'lat+stretch+on+rack+tutorial',
+    "Child's pose": 'childs+pose+stretch+tutorial',
+    'Cross-body shoulder stretch': 'cross+body+shoulder+stretch+tutorial',
+    'Pigeon pose': 'pigeon+pose+stretch+tutorial',
+    'Seated hamstring stretch': 'seated+hamstring+stretch+tutorial',
+    'Supine spinal twist': 'supine+spinal+twist+stretch+tutorial',
+    'Doorway chest stretch': 'doorway+chest+stretch+tutorial',
+    'Tricep overhead stretch': 'tricep+overhead+stretch+tutorial',
+    '10 min easy walk': 'cool+down+walking+tutorial',
+    'Full lower body stretch circuit': 'lower+body+stretching+routine+cool+down',
+    'Foam roll: calves, quads, IT band': 'foam+rolling+calves+quads+IT+band+tutorial',
+    'Standing quad stretch': 'standing+quad+stretch+tutorial',
+    'Hamstring stretch': 'hamstring+stretch+tutorial',
+    'Hip flexor lunge stretch': 'hip+flexor+lunge+stretch+tutorial',
+    'Foam roll: quads, IT band, calves': 'foam+rolling+quads+IT+band+calves+tutorial',
+  };
+  const key = Object.keys(overrides).find(k => item.includes(k));
+  if (key) return 'https://www.youtube.com/results?search_query=' + overrides[key];
+  return 'https://www.youtube.com/results?search_query=' + encodeURIComponent(item + ' how to').replace(/%20/g, '+');
 }
 
 function youtubeUrl(name) {

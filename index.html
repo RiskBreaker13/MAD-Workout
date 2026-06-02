@@ -1475,28 +1475,69 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
   const weighted          = isWeightedExercise(ex.name);
   const weightUnit        = ex.name.includes('Box Jump') ? 'in' : 'lbs';
   const weightPlaceholder = ex.name.includes('Box Jump') ? 'height' : 'lbs';
+  const runType           = getRunType(ex.name); // 'sprint' | 'run' | null
   let setRows = '';
   for (let s = 0; s < ex.sets; s++) {
     const key         = `${week}-${dayIdx}-${exIdx}-${s}`;
     const done        = state.completedSets[key];
     const savedReps   = state.completedSets[key + '-reps']   || '';
     const savedWeight = state.completedSets[key + '-weight'] || '';
-    const weightField = weighted ? `<div class="input-group">
-      <input class="weight-input" type="number" placeholder="${weightPlaceholder}" value="${savedWeight}"
-        onchange="saveWeight(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
-      <div class="input-label">${weightUnit}</div>
-    </div>` : '';
-    setRows += `<div class="set-row" data-set-key="${key}">
-      <div class="set-label">Set ${s + 1}</div>
-      <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
-      <div class="input-group">
-        <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
-          onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
-        <div class="input-label">reps</div>
-      </div>
-      ${weightField}
-      <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
-    </div>`;
+    const savedPace   = state.completedSets[key + '-pace']   || '';
+
+    let inputFields = '';
+    if (runType === 'run') {
+      // Steady run: distance + pace
+      const setLabel = ex.sets > 1 ? `Rep ${s + 1}` : 'Run';
+      inputFields = `
+        <div class="input-group">
+          <input class="reps-input" type="text" placeholder="0.0" value="${savedReps}"
+            onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+          <div class="input-label">miles</div>
+        </div>
+        <div class="input-group">
+          <input class="weight-input" type="text" placeholder="0:00" value="${savedPace}"
+            onchange="savePace(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+          <div class="input-label">min/mi</div>
+        </div>`;
+      setRows += `<div class="set-row" data-set-key="${key}">
+        <div class="set-label">${setLabel}</div>
+        <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+        ${inputFields}
+        <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+      </div>`;
+    } else if (runType === 'sprint') {
+      // Sprint: time per rep
+      inputFields = `
+        <div class="input-group">
+          <input class="reps-input" type="text" placeholder="0:00" value="${savedReps}"
+            onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+          <div class="input-label">time</div>
+        </div>`;
+      setRows += `<div class="set-row" data-set-key="${key}">
+        <div class="set-label">Rep ${s + 1}</div>
+        <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+        ${inputFields}
+        <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+      </div>`;
+    } else {
+      // Strength: reps + optional weight
+      const weightField = weighted ? `<div class="input-group">
+        <input class="weight-input" type="number" placeholder="${weightPlaceholder}" value="${savedWeight}"
+          onchange="saveWeight(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+        <div class="input-label">${weightUnit}</div>
+      </div>` : '';
+      setRows += `<div class="set-row" data-set-key="${key}">
+        <div class="set-label">Set ${s + 1}</div>
+        <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+        <div class="input-group">
+          <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
+            onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+          <div class="input-label">reps</div>
+        </div>
+        ${weightField}
+        <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+      </div>`;
+    }
   }
 
   // Last time display
@@ -1631,6 +1672,19 @@ function completeAll() {
   saveState();
   renderWorkout();
   showToast('Session Complete! 🔥');
+}
+
+function getRunType(name) {
+  const sprints = ['100m','200m','300m','Stride','Sprint Interval'];
+  if (sprints.some(k => name.includes(k))) return 'sprint';
+  const runs = ['Run','Jog','Tempo','Mile','Time Trial'];
+  if (runs.some(k => name.includes(k))) return 'run';
+  return null;
+}
+
+function savePace(week, dayIdx, exIdx, setIdx, val) {
+  state.completedSets[`${week}-${dayIdx}-${exIdx}-${setIdx}-pace`] = val;
+  saveState();
 }
 
 function isWeightedExercise(name) {

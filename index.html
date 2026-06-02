@@ -235,15 +235,37 @@
   .exercise.completed .exercise-name { color: var(--green); }
 
   .exercise-notes {
-    padding: 0 16px 14px;
+    padding: 10px 16px 14px;
     font-size: 13px;
     color: var(--muted);
-    line-height: 1.5;
+    line-height: 1.6;
     display: none;
     border-top: 1px solid var(--border);
-    padding-top: 10px;
   }
   .exercise.expanded .exercise-notes { display: block; }
+  .form-tips-label {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--accent);
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    margin-bottom: 4px;
+  }
+  .demo-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 10px;
+    background: rgba(255,0,0,0.12);
+    border: 1px solid rgba(255,0,0,0.35);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: #ff4444;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: none;
+    cursor: pointer;
+  }
 
   /* Sets tracker */
   .sets-tracker {
@@ -1181,7 +1203,10 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
       </div>
     </div>
     ${isExpanded ? `<div class="sets-tracker">${setRows}</div>` : ''}
-    ${isExpanded && ex.notes ? `<div class="exercise-notes">${ex.notes}</div>` : ''}
+    ${isExpanded ? `<div class="exercise-notes">
+      ${ex.notes ? `<div class="form-tips-label">Form Tips</div><div>${ex.notes}</div>` : ''}
+      <a class="demo-btn" href="${youtubeUrl(ex.name)}" target="_blank" onclick="event.stopPropagation()">▶ Watch Demo on YouTube</a>
+    </div>` : ''}
   </div>`;
 }
 
@@ -1218,6 +1243,41 @@ function saveWeight(week, dayIdx, exIdx, setIdx, val) {
 function isWeightedExercise(name) {
   const keywords = ['Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable'];
   return keywords.some(k => name.includes(k));
+}
+
+function youtubeUrl(name) {
+  const overrides = {
+    'Pull-ups (strict)': 'how+to+do+strict+pull+ups+proper+form',
+    'Negative Pull-ups': 'how+to+do+negative+pull+ups+tutorial',
+    'Weighted Pull-ups': 'how+to+do+weighted+pull+ups',
+    'Lat Pulldown': 'lat+pulldown+proper+form+tutorial',
+    'Bent-Over Row': 'bent+over+row+proper+form+tutorial',
+    'Face Pulls': 'how+to+do+face+pulls+proper+form',
+    'Dead Hang Grip': 'dead+hang+grip+training+tutorial',
+    'Bodyweight Squats': 'how+to+do+bodyweight+squat+proper+form',
+    'Goblet Squat': 'how+to+do+goblet+squat+proper+form',
+    'Goblet Squat (heavy)': 'how+to+do+goblet+squat+proper+form',
+    'Bulgarian Split Squat': 'how+to+do+bulgarian+split+squat+tutorial',
+    'Sit-ups': 'how+to+do+sit+ups+proper+form+competition',
+    'Weighted Sit-ups': 'how+to+do+weighted+sit+ups+tutorial',
+    'Leg Raises': 'how+to+do+leg+raises+proper+form',
+    'Push-ups (strict)': 'how+to+do+strict+push+ups+proper+form',
+    'Weighted Push-ups': 'how+to+do+weighted+push+ups+tutorial',
+    'Incline Push-ups': 'how+to+do+incline+push+ups+proper+form',
+    'Dumbbell Bench Press': 'dumbbell+bench+press+proper+form+tutorial',
+    'Dumbbell Shoulder Press': 'dumbbell+shoulder+press+proper+form',
+    'Tricep Dips (bench)': 'how+to+do+bench+tricep+dips+proper+form',
+    'Box Jumps': 'how+to+do+box+jumps+proper+form',
+    'Jump Squats': 'how+to+do+jump+squats+proper+form',
+    'Plank Holds': 'how+to+do+plank+proper+form+tutorial',
+    '100m Sprint Intervals': 'how+to+sprint+proper+running+form',
+    '200m Sprint Intervals': 'how+to+sprint+200m+running+technique',
+    '300m Race-Pace Efforts': 'how+to+run+300m+sprint+technique',
+    'Easy Continuous Run': 'easy+running+pace+technique+tutorial',
+    'Tempo Intervals': 'how+to+run+tempo+intervals+training',
+  };
+  const query = overrides[name] || encodeURIComponent('how to do ' + name + ' proper form').replace(/%20/g, '+');
+  return 'https://www.youtube.com/results?search_query=' + query;
 }
 
 function toggleChecklist(key, el) {

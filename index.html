@@ -1173,6 +1173,8 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
   }).join('');
 
   const weighted = isWeightedExercise(ex.name);
+  const weightUnit = ex.name.includes('Box Jump') ? 'in' : 'lbs';
+  const weightPlaceholder = ex.name.includes('Box Jump') ? 'height' : 'lbs';
   let setRows = '';
   for (let s = 0; s < ex.sets; s++) {
     const key = `${week}-${dayIdx}-${exIdx}-${s}`;
@@ -1180,9 +1182,9 @@ function renderExercise(ex, exIdx, week, dayIdx, phase) {
     const savedReps = state.completedSets[key + '-reps'] || '';
     const savedWeight = state.completedSets[key + '-weight'] || '';
     const weightField = weighted ? `<div class="input-group">
-      <input class="weight-input" type="number" placeholder="lbs" value="${savedWeight}"
+      <input class="weight-input" type="number" placeholder="${weightPlaceholder}" value="${savedWeight}"
         onchange="saveWeight(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
-      <div class="input-label">lbs</div>
+      <div class="input-label">${weightUnit}</div>
     </div>` : '';
     setRows += `<div class="set-row">
       <div class="set-label">Set ${s + 1}</div>

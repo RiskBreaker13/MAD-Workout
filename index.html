@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MAD Tracker">
+<title>MAD Fitness Tracker — Dariusz</title>
+<style>
+  :root {
+    --bg: #0f0f0f;
+    --surface: #1a1a1a;
+    --surface2: #252525;
+    --border: #333;
+    --accent: #e8c84a;
+    --accent2: #ff6b35;
+    --text: #f0f0f0;
+    --muted: #888;
+    --green: #4caf7d;
+    --red: #e05555;
+    --radius: 14px;
+    --safe-top: env(safe-area-inset-top);
+    --safe-bottom: env(safe-area-inset-bottom);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', sans-serif;
+    min-height: 100vh;
+    padding-bottom: calc(80px + var(--safe-bottom));
+  }
+
+  /* Header */
+  .header {
+    background: var(--surface);
+    padding: calc(var(--safe-top) + 16px) 20px 16px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--border);
+  }
+  .header-top { display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-size: 20px; font-weight: 700; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent); }
+  .phase-badge {
+    background: var(--accent);
+    color: #000;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 20px;
+    letter-spacing: 0.5px;
+  }
+  .sub-header { margin-top: 12px; display: flex; align-items: center; gap: 12px; }
+  .day-label { font-size: 22px; font-weight: 700; }
+  .day-sub { font-size: 13px; color: var(--muted); margin-top: 2px; }
+
+  /* Nav tabs */
+  .nav {
+    position: fixed;
+    bottom: 0;
+    left: 0; right: 0;
+    background: var(--surface);
+    border-top: 1px solid var(--border);
+    display: flex;
+    padding-bottom: var(--safe-bottom);
+    z-index: 100;
+  }
+  .nav-btn {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    padding: 10px 0 8px;
+    font-size: 10px;
+    color: var(--muted);
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.15s;
+  }
+  .nav-btn.active { color: var(--accent); }
+  .nav-icon { font-size: 22px; line-height: 1; }
+
+  /* Screens */
+  .screen { display: none; padding: 16px; }
+  .screen.active { display: block; }
+
+  /* Cards */
+  .card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    margin-bottom: 12px;
+    border: 1px solid var(--border);
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-bottom: 12px;
+  }
+
+  /* Day picker */
+  .day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+  }
+  .day-pill {
+    background: var(--surface2);
+    border: 2px solid transparent;
+    border-radius: 10px;
+    padding: 10px 4px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .day-pill.active { border-color: var(--accent); background: rgba(232,200,74,0.12); }
+  .day-pill.rest { opacity: 0.4; }
+  .day-pill.done { background: rgba(76,175,125,0.15); border-color: var(--green); }
+  .day-pill .pill-day { font-size: 10px; color: var(--muted); font-weight: 600; }
+  .day-pill .pill-icon { font-size: 18px; margin: 4px 0; }
+  .day-pill .pill-dot { width: 5px; height: 5px; border-radius: 50%; margin: 0 auto; }
+  .day-pill.done .pill-dot { background: var(--green); }
+
+  /* Phase selector */
+  .phase-row {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+  .phase-row::-webkit-scrollbar { display: none; }
+  .phase-chip {
+    flex-shrink: 0;
+    background: var(--surface2);
+    border: 2px solid transparent;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .phase-chip.active { border-color: var(--accent); color: var(--accent); }
+  .phase-chip.deload.active { border-color: var(--accent2); color: var(--accent2); }
+  .phase-chip.taper.active { border-color: var(--green); color: var(--green); }
+
+  /* Week input */
+  .week-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  .week-label { font-size: 15px; color: var(--text); }
+  .week-ctrl { display: flex; align-items: center; gap: 12px; }
+  .week-btn {
+    width: 36px; height: 36px;
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 50%;
+    font-size: 20px;
+    color: var(--text);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .week-num { font-size: 22px; font-weight: 700; min-width: 28px; text-align: center; }
+
+  /* Workout section */
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 16px 0 10px;
+  }
+  .section-title { font-size: 17px; font-weight: 700; }
+  .section-tag {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(232,200,74,0.15);
+    color: var(--accent);
+  }
+
+  /* Exercise rows */
+  .exercise {
+    background: var(--surface);
+    border-radius: var(--radius);
+    margin-bottom: 10px;
+    border: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .exercise-header {
+    padding: 14px 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    cursor: pointer;
+    user-select: none;
+  }
+  .exercise-name { font-size: 16px; font-weight: 600; }
+  .exercise-meta { font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .exercise-progress {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+  .set-dots { display: flex; gap: 4px; }
+  .set-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .set-dot.done { background: var(--green); border-color: var(--green); }
+  .complete-badge {
+    font-size: 10px;
+    color: var(--green);
+    font-weight: 600;
+    display: none;
+  }
+  .exercise.completed .complete-badge { display: block; }
+  .exercise.completed .exercise-name { color: var(--green); }
+
+  .exercise-notes {
+    padding: 0 16px 14px;
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+    display: none;
+    border-top: 1px solid var(--border);
+    padding-top: 10px;
+  }
+  .exercise.expanded .exercise-notes { display: block; }
+
+  /* Sets tracker */
+  .sets-tracker {
+    padding: 0 16px 14px;
+    display: none;
+  }
+  .exercise.expanded .sets-tracker { display: block; }
+  .set-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .set-row:last-child { border-bottom: none; }
+  .set-label { font-size: 13px; color: var(--muted); min-width: 40px; }
+  .set-check {
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    border: 2px solid var(--border);
+    background: transparent;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .set-check.done { background: var(--green); border-color: var(--green); }
+  .reps-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-size: 14px;
+    width: 70px;
+    text-align: center;
+  }
+  .reps-input:focus { outline: none; border-color: var(--accent); }
+  .weight-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-size: 14px;
+    width: 70px;
+    text-align: center;
+  }
+  .weight-input:focus { outline: none; border-color: var(--accent2); }
+  .input-label { font-size: 10px; color: var(--muted); text-align: center; margin-top: 2px; }
+  .input-group { display: flex; flex-direction: column; align-items: center; }
+  .set-notes { font-size: 12px; color: var(--muted); flex: 1; }
+
+  /* Warmup / cooldown */
+  .checklist { list-style: none; }
+  .checklist li {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+  }
+  .checklist li:last-child { border-bottom: none; }
+  .check-box {
+    width: 22px; height: 22px;
+    border-radius: 6px;
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 12px;
+    transition: all 0.15s;
+    margin-top: 1px;
+  }
+  .checklist li.checked .check-box {
+    background: var(--green);
+    border-color: var(--green);
+  }
+  .checklist li.checked .check-text { text-decoration: line-through; color: var(--muted); }
+
+  /* Rest timer */
+  .timer-bar {
+    position: fixed;
+    bottom: calc(56px + var(--safe-bottom));
+    left: 16px; right: 16px;
+    background: var(--surface);
+    border: 1px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    display: none;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 50;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .timer-bar.visible { display: flex; }
+  .timer-label { font-size: 13px; color: var(--muted); }
+  .timer-count { font-size: 28px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; }
+  .timer-stop {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    color: var(--text);
+    font-size: 13px;
+    cursor: pointer;
+  }
+
+  /* Progress screen */
+  .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .stat-box {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 16px;
+    border: 1px solid var(--border);
+    text-align: center;
+  }
+  .stat-num { font-size: 32px; font-weight: 700; color: var(--accent); }
+  .stat-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+  .event-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 14px;
+  }
+  .event-row:last-child { border-bottom: none; }
+  .event-name { font-weight: 600; }
+  .event-score { color: var(--accent); font-weight: 700; }
+  .event-weight { font-size: 11px; color: var(--muted); }
+
+  .trial-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 8px;
+    align-items: center;
+  }
+  .trial-label { font-size: 13px; color: var(--muted); min-width: 80px; }
+  .trial-input {
+    background: var(--surface2);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 12px;
+    color: var(--text);
+    font-size: 14px;
+    flex: 1;
+  }
+  .trial-input:focus { outline: none; border-color: var(--accent); }
+  .trial-delta { font-size: 13px; font-weight: 700; min-width: 50px; text-align: right; }
+
+  /* Settings */
+  .settings-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 15px;
+  }
+  .settings-row:last-child { border-bottom: none; }
+  .settings-label { color: var(--text); }
+  .settings-value { color: var(--accent); font-weight: 600; }
+
+  .btn-danger {
+    background: rgba(224,85,85,0.15);
+    border: 1px solid var(--red);
+    color: var(--red);
+    border-radius: var(--radius);
+    padding: 14px;
+    width: 100%;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    margin-top: 12px;
+  }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    top: calc(var(--safe-top) + 80px);
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: var(--green);
+    color: #000;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 20px;
+    border-radius: 20px;
+    opacity: 0;
+    pointer-events: none;
+    transition: all 0.3s;
+    z-index: 999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* Phase banner */
+  .phase-banner {
+    border-radius: var(--radius);
+    padding: 12px 16px;
+    margin-bottom: 16px;
+    font-size: 13px;
+    line-height: 1.5;
+    border: 1px solid;
+  }
+  .phase-banner.normal { background: rgba(232,200,74,0.08); border-color: rgba(232,200,74,0.3); color: var(--accent); }
+  .phase-banner.deload { background: rgba(255,107,53,0.08); border-color: rgba(255,107,53,0.3); color: var(--accent2); }
+  .phase-banner.taper { background: rgba(76,175,125,0.08); border-color: rgba(76,175,125,0.3); color: var(--green); }
+  .phase-banner strong { display: block; font-size: 15px; margin-bottom: 4px; }
+
+  .rest-cta {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 40px 20px;
+    text-align: center;
+    border: 1px solid var(--border);
+    margin-top: 20px;
+  }
+  .rest-emoji { font-size: 48px; }
+  .rest-title { font-size: 20px; font-weight: 700; margin: 12px 0 8px; }
+  .rest-sub { font-size: 14px; color: var(--muted); }
+
+  .complete-all-btn {
+    background: var(--green);
+    color: #000;
+    font-size: 16px;
+    font-weight: 700;
+    border: none;
+    border-radius: var(--radius);
+    padding: 16px;
+    width: 100%;
+    cursor: pointer;
+    margin-top: 16px;
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">MAD <span>FITNESS</span></div>
+    <div class="phase-badge" id="headerPhase">PHASE 1</div>
+  </div>
+  <div class="sub-header">
+    <div>
+      <div class="day-label" id="headerDay">Monday</div>
+      <div class="day-sub" id="headerSub">Pull-ups & Back · Week 1</div>
+    </div>
+  </div>
+</div>
+
+<!-- Today Screen -->
+<div class="screen active" id="screen-today">
+  <div class="card">
+    <div class="card-title">Training Week</div>
+    <div class="week-row">
+      <div class="week-label">Week</div>
+      <div class="week-ctrl">
+        <button class="week-btn" onclick="changeWeek(-1)">−</button>
+        <div class="week-num" id="weekNum">1</div>
+        <button class="week-btn" onclick="changeWeek(1)">+</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Select Day</div>
+    <div class="day-grid" id="dayGrid"></div>
+  </div>
+
+  <div id="workoutContent"></div>
+</div>
+
+<!-- Progress Screen -->
+<div class="screen" id="screen-progress">
+  <div class="stat-grid" id="statGrid"></div>
+
+  <div class="card">
+    <div class="card-title">Event Scoring (% improvement × weight)</div>
+    <div class="event-row">
+      <div><div class="event-name">1.5-Mile Run</div><div class="event-weight">Weight: 1.5×</div></div>
+      <div class="event-score" id="score-run">—</div>
+    </div>
+    <div class="event-row">
+      <div><div class="event-name">300m Sprint</div><div class="event-weight">Weight: 1.25×</div></div>
+      <div class="event-score" id="score-sprint">—</div>
+    </div>
+    <div class="event-row">
+      <div><div class="event-name">Pull-ups</div><div class="event-weight">Weight: 1.25×</div></div>
+      <div class="event-score" id="score-pullups">—</div>
+    </div>
+    <div class="event-row">
+      <div><div class="event-name">Push-ups</div><div class="event-weight">Weight: 1.0×</div></div>
+      <div class="event-score" id="score-pushups">—</div>
+    </div>
+    <div class="event-row">
+      <div><div class="event-name">Sit-ups</div><div class="event-weight">Weight: 1.0×</div></div>
+      <div class="event-score" id="score-situps">—</div>
+    </div>
+    <div class="event-row">
+      <div><div class="event-name">Squats</div><div class="event-weight">Weight: 1.0×</div></div>
+      <div class="event-score" id="score-squats">—</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Time Trials</div>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:12px">Day 14 baseline · Day 35 mid · Day 56 peak · Day 57 final</p>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">1.5-Mile Run (mm:ss)</div>
+      <div class="trial-row">
+        <div class="trial-label">Day 14</div>
+        <input class="trial-input" type="text" placeholder="e.g. 12:30" id="trial-run-14" oninput="saveTrials()">
+        <div class="trial-delta" id="delta-run-14">—</div>
+      </div>
+      <div class="trial-row">
+        <div class="trial-label">Day 35</div>
+        <input class="trial-input" type="text" placeholder="—" id="trial-run-35" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-run-35">—</div>
+      </div>
+      <div class="trial-row">
+        <div class="trial-label">Day 56</div>
+        <input class="trial-input" type="text" placeholder="—" id="trial-run-56" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-run-56">—</div>
+      </div>
+      <div class="trial-row">
+        <div class="trial-label">Day 57</div>
+        <input class="trial-input" type="text" placeholder="—" id="trial-run-57" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-run-57">—</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Pull-ups (max reps)</div>
+      <div class="trial-row">
+        <div class="trial-label">Baseline</div>
+        <input class="trial-input" type="number" placeholder="0" id="trial-pu-base" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-pu-base">baseline</div>
+      </div>
+      <div class="trial-row">
+        <div class="trial-label">Current</div>
+        <input class="trial-input" type="number" placeholder="0" id="trial-pu-now" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-pu-now">—</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px">
+      <div style="font-size:13px;font-weight:600;color:var(--muted);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Push-ups (max reps)</div>
+      <div class="trial-row">
+        <div class="trial-label">Baseline</div>
+        <input class="trial-input" type="number" placeholder="0" id="trial-push-base" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-push-base">baseline</div>
+      </div>
+      <div class="trial-row">
+        <div class="trial-label">Current</div>
+        <input class="trial-input" type="number" placeholder="0" id="trial-push-now" oninput="saveTrials();updateDeltas()">
+        <div class="trial-delta" id="delta-push-now">—</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Schedule Screen -->
+<div class="screen" id="screen-schedule">
+  <div class="card">
+    <div class="card-title">10-Week Overview</div>
+    <div id="scheduleGrid"></div>
+  </div>
+</div>
+
+<!-- Nav -->
+<nav class="nav">
+  <button class="nav-btn active" onclick="showScreen('today', this)">
+    <div class="nav-icon">🏋️</div>
+    Today
+  </button>
+  <button class="nav-btn" onclick="showScreen('progress', this)">
+    <div class="nav-icon">📈</div>
+    Progress
+  </button>
+  <button class="nav-btn" onclick="showScreen('schedule', this)">
+    <div class="nav-icon">📅</div>
+    Schedule
+  </button>
+</nav>
+
+<!-- Rest Timer -->
+<div class="timer-bar" id="timerBar">
+  <div>
+    <div class="timer-label">Rest Timer</div>
+    <div class="timer-count" id="timerCount">2:00</div>
+  </div>
+  <button class="timer-stop" onclick="stopTimer()">Done</button>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const DAY_ICONS = ['💪','🦵','🤸','😴','⚡','🏃','🔥'];
+const DAY_EVENTS = ['Pull-ups & Back','Lower Body & Core','Push — Chest & Shoulders','REST','Sprint Work & Power','Long Run — Aerobic Base','Legs, Core & Conditioning'];
+
+const PHASES = [
+  { key:'p1', label:'Phase 1', weeks:[1,2], type:'normal', desc:'Form foundation. Stop before failure. Neural adaptation.' },
+  { key:'p2', label:'Phase 2', weeks:[3,4], type:'normal', desc:'Volume increases. Push closer to failure each session.' },
+  { key:'dl', label:'Deload',  weeks:[5],   type:'deload', desc:'MANDATORY RECOVERY. 50–60% volume. Week 5 only.' },
+  { key:'p3', label:'Phase 3', weeks:[6,7], type:'normal', desc:'Weighted overload introduced. Hypertrophy begins. Tempo runs start.' },
+  { key:'p4', label:'Phase 4', weeks:[8,9], type:'normal', desc:'Maximum volume and specificity. Near true failure.' },
+  { key:'tp', label:'Taper',   weeks:[10],  type:'taper',  desc:'Volume drops 40–50%. Stay sharp. Arrive fresh.' },
+];
+
+function getPhase(week) {
+  return PHASES.find(p => p.weeks.includes(week)) || PHASES[0];
+}
+
+// Workout data indexed by [dayIndex][phaseKey]
+const WORKOUTS = {
+  0: { // Monday — Pull-ups & Back
+    warmup: ['5 min easy row or jump rope','Band pull-aparts — 3×15','Dead hang holds — 3×20 sec','Arm circles, shoulder CARs — 2 min'],
+    cooldown: ['Lat stretch on rack — 60 sec/side',"Child's pose — 60 sec",'Cross-body shoulder stretch — 30 sec/side'],
+    p1: [
+      { name:'Pull-ups (strict)', sets:3, reps:'Max reps, stop 2 short', notes:'Dead hang start, chin clears bar, no kipping. Rest 2–3 min.' },
+      { name:'Negative Pull-ups', sets:3, reps:'5 reps, 5 sec descent', notes:'Jump to top, lower slowly over 5 full seconds.' },
+      { name:'Lat Pulldown', sets:3, reps:'10–12', notes:'Moderate weight. Full stretch at top. Reinforce pull-up pattern.' },
+      { name:'Bent-Over Row', sets:3, reps:'8–10', notes:'Barbell or dumbbell. Control the descent. Scapular retractors.' },
+      { name:'Face Pulls', sets:3, reps:'15', notes:'Light weight, full ROM. Rope at face height. Elbows high. Shoulder health.' },
+      { name:'Dead Hang Grip', sets:3, reps:'Hold to near failure', notes:'Grip is often the limiting factor in pull-ups.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace. After all strength work. 8–10 min/mile.' },
+    ],
+    p2: [
+      { name:'Pull-ups (strict)', sets:4, reps:'Max reps, closer to failure', notes:'Push further than Phase 1. Full dead hang start.' },
+      { name:'Negative Pull-ups', sets:3, reps:'5 reps, 5 sec descent', notes:'Still in play this phase. Phased out in Phase 3.' },
+      { name:'Lat Pulldown', sets:4, reps:'10–12', notes:'Heavier than Phase 1. Increase weight each week if form holds.' },
+      { name:'Bent-Over Row', sets:4, reps:'8–10', notes:'Add a set from Phase 1. Progressive overload.' },
+      { name:'Face Pulls', sets:3, reps:'15', notes:'Consistent. Never skip this.' },
+      { name:'Dead Hang Grip', sets:3, reps:'Hold to near failure', notes:'' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    dl: [
+      { name:'Pull-ups (strict)', sets:2, reps:'Submaximal, 4–5 in reserve', notes:'No grinding. Easy, controlled reps only.' },
+      { name:'Lat Pulldown', sets:2, reps:'10', notes:"Lighter than Phase 2. Flush, don't fatigue." },
+      { name:'Bent-Over Row', sets:2, reps:'8', notes:'Light weight.' },
+      { name:'Face Pulls', sets:2, reps:'15', notes:'Light weight.' },
+      { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'Skip entirely if fatigued.' },
+    ],
+    p3: [
+      { name:'Pull-ups (strict)', sets:5, reps:'Max reps', notes:'Higher volume than Phase 2. Near true failure on final sets.' },
+      { name:'Weighted Pull-ups', sets:3, reps:'4–6 reps', notes:'NEW: Add 5–10 lb via belt or vest. Lower reps is expected.' },
+      { name:'Lat Pulldown', sets:4, reps:'10–12', notes:'Heavier than Phase 2. Progressive load continues.' },
+      { name:'Bent-Over Row', sets:4, reps:'10', notes:'Control descent.' },
+      { name:'Face Pulls', sets:4, reps:'15', notes:'Extra set added this phase.' },
+      { name:'Dead Hang Grip', sets:3, reps:'Hold to near failure', notes:'' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    p4: [
+      { name:'Pull-ups (strict)', sets:6, reps:'Max reps, near true failure', notes:'Highest volume of program. Rest 3 min between sets.' },
+      { name:'Weighted Pull-ups', sets:3, reps:'4–6 reps', notes:'Optional — drop if accumulated fatigue is high.' },
+      { name:'Lat Pulldown', sets:4, reps:'10–12', notes:'Heavy.' },
+      { name:'Bent-Over Row', sets:4, reps:'10', notes:'Heavy, controlled.' },
+      { name:'Face Pulls', sets:4, reps:'15', notes:'Light weight.' },
+      { name:'Dead Hang Grip', sets:3, reps:'Hold to near failure', notes:'' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    tp: [
+      { name:'Pull-ups (strict)', sets:3, reps:"Max reps — don't grind", notes:"Maintain feel. Not a training session — a sharpener." },
+      { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'Light and easy only.' },
+    ],
+  },
+  1: { // Tuesday — Lower Body & Core
+    warmup: ['5 min light bike or walk','Hip circles — 10 each direction','Leg swings front/back and lateral — 10 each','Bodyweight squat to depth — 2×10 (slow, deliberate)'],
+    cooldown: ['Pigeon pose — 90 sec/side','Seated hamstring stretch — 60 sec/side','Supine spinal twist — 60 sec/side'],
+    p1: [
+      { name:'Bodyweight Squats', sets:4, reps:'25', notes:'Hip below knee, full lockout. Competition form every rep.' },
+      { name:'Goblet Squat', sets:3, reps:'12–15', notes:'Dumbbell at chest. Moderate weight. Reinforces upright torso and depth.' },
+      { name:'Bulgarian Split Squat', sets:3, reps:'10/side', notes:'Bodyweight or light DB. Rear foot on bench. Front shin stays vertical.' },
+      { name:'Sit-ups', sets:4, reps:'Max reps, stop 2 short', notes:'Shoulders touch floor, elbows touch thighs. Exact competition form.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'Heels stay off floor. Hip flexor endurance.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'After all lower body work.' },
+    ],
+    p2: [
+      { name:'Bodyweight Squats', sets:5, reps:'30', notes:'Competition form throughout. 5 more reps than Phase 1.' },
+      { name:'Goblet Squat', sets:3, reps:'12–15', notes:'Heavier than Phase 1. Increase load each session.' },
+      { name:'Bulgarian Split Squat', sets:3, reps:'10/side', notes:'Light dumbbell. Add load from Phase 1 bodyweight.' },
+      { name:'Sit-ups', sets:5, reps:'Max reps', notes:'Push closer to true failure than Phase 1.' },
+      { name:'Weighted Sit-ups', sets:3, reps:'12', notes:'NEW: Light plate on chest. Overloads the movement. Makes bodyweight feel easier.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'Heels stay off floor.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    dl: [
+      { name:'Bodyweight Squats', sets:3, reps:'20', notes:'Light and easy. No grinding.' },
+      { name:'Goblet Squat', sets:2, reps:'12', notes:"Light weight. Flush, don't fatigue." },
+      { name:'Sit-ups', sets:3, reps:'15 (submaximal)', notes:'Controlled. Well within capacity.' },
+      { name:'Leg Raises', sets:2, reps:'12', notes:'Easy.' },
+      { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+    p3: [
+      { name:'Bodyweight Squats', sets:5, reps:'40', notes:'Highest competition-form rep count so far.' },
+      { name:'Goblet Squat', sets:4, reps:'12–15', notes:'Heavy. Heavier than Phase 2. Rest 90 sec between sets.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'10–12/side', notes:'Dumbbell. More volume and load than Phase 2.' },
+      { name:'Sit-ups', sets:5, reps:'Max reps', notes:'' },
+      { name:'Weighted Sit-ups', sets:3, reps:'12–15', notes:'Heavier plate. Increase plate weight from Phase 2.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'Slow and controlled.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    p4: [
+      { name:'Bodyweight Squats', sets:5, reps:'45–50', notes:'Near competition max effort. Full form throughout.' },
+      { name:'Goblet Squat', sets:4, reps:'15', notes:'Heavy.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'12/side', notes:'Heavy dumbbell.' },
+      { name:'Sit-ups', sets:6, reps:'Max reps, near true failure', notes:'Highest sit-up volume of the program this day.' },
+      { name:'Weighted Sit-ups', sets:3, reps:'15', notes:'Heavy plate.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'Slow.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    tp: [
+      { name:'Bodyweight Squats', sets:3, reps:'30', notes:'Crisp form. Not a hard session.' },
+      { name:'Sit-ups', sets:3, reps:"Max reps — don't grind", notes:'Stay sharp.' },
+      { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+  },
+  2: { // Wednesday — Push
+    warmup: ['Band pull-aparts — 2×15','Shoulder pass-throughs with PVC — 2×10','Slow push-up warm-up — 2×8','Wrist circles — 30 sec'],
+    cooldown: ['Doorway chest stretch — 60 sec','Cross-body shoulder stretch — 30 sec/side','Tricep overhead stretch — 30 sec/side'],
+    p1: [
+      { name:'Push-ups (strict)', sets:4, reps:'Max reps, stop 2 short', notes:'Full lockout, chest to fist height, rigid body. Competition form.' },
+      { name:'Dumbbell Bench Press', sets:3, reps:'8–10', notes:'Lower 2–3 sec. Raw pressing strength. Moderate weight.' },
+      { name:'Incline Push-ups', sets:3, reps:'15–20', notes:'Hands on bench. Upper chest and volume work.' },
+      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'Brace core throughout. Stabilises lockout under fatigue.' },
+      { name:'Tricep Dips (bench)', sets:3, reps:'12–15', notes:'Back close to bench. Triceps fail first in push-ups.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    p2: [
+      { name:'Push-ups (strict)', sets:5, reps:'Max reps, push harder', notes:'Further into failure than Phase 1.' },
+      { name:'Dumbbell Bench Press', sets:4, reps:'8–10', notes:'Heavier than Phase 1. Progressive overload.' },
+      { name:'Incline Push-ups', sets:3, reps:'15–20', notes:'Hands on bench.' },
+      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'' },
+      { name:'Tricep Dips (bench)', sets:3, reps:'12–15', notes:'Add weight on thighs if easy.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    dl: [
+      { name:'Push-ups (strict)', sets:3, reps:'Submaximal — stop well short', notes:'Easy reps. No grinding.' },
+      { name:'Dumbbell Bench Press', sets:2, reps:'10', notes:"Light weight. Flush movement, don't fatigue." },
+      { name:'Dumbbell Shoulder Press', sets:2, reps:'10', notes:'Light weight.' },
+      { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+    p3: [
+      { name:'Push-ups (strict)', sets:5, reps:'Max reps', notes:'' },
+      { name:'Weighted Push-ups', sets:3, reps:'10–12', notes:'NEW: Plate on upper back. Start with 10–25 lb. Have a partner place the plate.' },
+      { name:'Dumbbell Bench Press', sets:4, reps:'8–10', notes:'Heavier than Phase 2.' },
+      { name:'Incline Push-ups', sets:3, reps:'15–20', notes:'' },
+      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'' },
+      { name:'Tricep Dips (bench)', sets:3, reps:'12–15', notes:'Add weight on thighs.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    p4: [
+      { name:'Push-ups (strict)', sets:6, reps:'Max reps, near true failure', notes:'Highest push-up volume of the program.' },
+      { name:'Weighted Push-ups', sets:3, reps:'10–12', notes:'Same or heavier plate.' },
+      { name:'Dumbbell Bench Press', sets:4, reps:'6–8', notes:'Heavy — lower reps. Strength focus.' },
+      { name:'Dumbbell Shoulder Press', sets:3, reps:'10–12', notes:'' },
+      { name:'Tricep Dips (bench)', sets:3, reps:'15', notes:'Weighted.' },
+      { name:'Easy Mile Run', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    tp: [
+      { name:'Push-ups (strict)', sets:3, reps:"Max reps — don't grind", notes:'Competition sharpener.' },
+      { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+  },
+  3: null, // Thursday — REST
+  4: { // Friday — Sprint
+    warmup: ['10 min easy jog','High knees — 2×20m','Butt kicks — 2×20m','A-skips — 2×20m','2–3 build-up strides at 75% effort'],
+    cooldown: ['10 min easy walk — mandatory','Standing quad stretch — 60 sec/side','Hamstring stretch — 60 sec/side','Hip flexor lunge stretch — 60 sec/side'],
+    p1: [
+      { name:'100m Sprint Intervals', sets:6, reps:'Full effort each', notes:'3–4 min full recovery between reps. Quality over quantity.' },
+      { name:'200m Sprint Intervals', sets:3, reps:'85% effort', notes:'3 min recovery. Bridges the gap toward 300m distance.' },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension at top. Explosive leg power. Carries into sprint drive phase.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Flushes lactate. Also your daily aerobic mile.' },
+    ],
+    p2: [
+      { name:'100m Sprint Intervals', sets:8, reps:'Full effort each', notes:'Full recovery. 2 more reps than Phase 1.' },
+      { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'3 min recovery. One more rep than Phase 1.' },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    dl: [
+      { name:'100m Light Strides', sets:4, reps:'70% effort only', notes:'Comfortable and controlled. Not a sprint session.' },
+      { name:'Box Jumps', sets:3, reps:'5', notes:"Easy — don't push it." },
+      { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+    p3: [
+      { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'Warm-up for the 300m work. 3 min recovery.' },
+      { name:'300m Race-Pace Efforts', sets:3, reps:'Full race pace', notes:"NEW: 5 min full recovery between reps. Learn your pacing — don't die in the first 100m." },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    p4: [
+      { name:'200m Warm-Up Efforts', sets:2, reps:'80% effort', notes:'Primer only. Not the focus.' },
+      { name:'300m Race-Pace Efforts', sets:4, reps:'Full race pace', notes:'5 min full recovery. This is your key session of the week.' },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    tp: [
+      { name:'100m Strides', sets:3, reps:'85% effort', notes:'Fast but not all-out.' },
+      { name:'300m Timed Effort', sets:1, reps:'Race pace', notes:'One sharp effort. Note your time.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+  },
+  5: { // Saturday — Long Run
+    warmup: ['5 min walk','Dynamic leg swings — 10 each direction','Easy 5 min jog to ease into pace'],
+    cooldown: ['5–10 min walk — mandatory, not optional','Full lower body stretch circuit — 10 min','Foam roll: calves, quads, IT band'],
+    p1: [
+      { name:'Easy Continuous Run', sets:1, reps:'20 min', notes:'Conversational pace throughout. Same route each time.' },
+      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 14 only', notes:'Baseline measurement. Go on fresh legs. Not a training session.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run. Comfortable fast running. Teaches leg turnover.' },
+    ],
+    p2: [
+      { name:'Easy Continuous Run', sets:1, reps:'25–28 min', notes:'Conversational pace. Longer than Phase 1.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run.' },
+    ],
+    dl: [
+      { name:'Easy Jog', sets:1, reps:'15 min — very easy', notes:'No strides. No effort. Pure recovery run.' },
+      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 35 only', notes:'Mid-point measurement. Compare to Day 14 baseline.' },
+    ],
+    p3: [
+      { name:'Easy Continuous Run', sets:1, reps:'30 min', notes:'Conversational pace to start.' },
+      { name:'Tempo Intervals', sets:2, reps:'8 min each', notes:'NEW: Comfortably hard — 3–4 words max. 90 sec easy jog between. After the easy run.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
+    ],
+    p4: [
+      { name:'Easy Continuous Run', sets:1, reps:'35 min', notes:'Conversational pace.' },
+      { name:'Tempo Intervals', sets:2, reps:'10 min each', notes:'2 min longer per rep than Phase 3. 90 sec easy jog between.' },
+      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 56 only', notes:'Third measurement. Compare your progression.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
+    ],
+    tp: [
+      { name:'Easy Jog', sets:1, reps:'20 min — very easy', notes:'No effort. Flush and recover.' },
+      { name:'Final 1.5-Mile Trial', sets:1, reps:'Day 57', notes:'Final pre-competition measurement.' },
+    ],
+  },
+  6: { // Sunday — Legs, Core & Conditioning
+    warmup: ['10 min easy bike or light jog','Hip circles — 10 each direction','Leg swings front/back and lateral — 10 each','Bodyweight squat to depth — 3×10 (slow)','Glute bridges — 2×15'],
+    cooldown: ['10 min walk — mandatory','Pigeon pose — 90 sec/side','Seated hamstring stretch — 60 sec/side','Supine spinal twist — 60 sec/side','Foam roll: quads, IT band, calves — 10 min'],
+    p1: [
+      { name:'Bodyweight Squats', sets:5, reps:'30', notes:'Competition form. More volume than Tuesday.' },
+      { name:'Goblet Squat (heavy)', sets:4, reps:'12–15', notes:'Heavier than Tuesday. Full depth. Rest 90 sec between sets.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'12/side', notes:'Light dumbbell. Unilateral volume. More than Tuesday.' },
+      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension. Explosive power.' },
+      { name:'Jump Squats', sets:3, reps:'10', notes:'Land soft — go immediately. Explosive under fatigue.' },
+      { name:'Sit-ups', sets:5, reps:'Max reps, stop early', notes:'Most sit-up volume of the week.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'Heels stay off floor.' },
+      { name:'Plank Holds', sets:3, reps:'60 sec each', notes:'Full-body bracing.' },
+      { name:'Fatigue Run', sets:1, reps:'1 mile easy', notes:'After all leg/core work. Intentional fatigue — competition simulation.' },
+    ],
+    p2: [
+      { name:'Bodyweight Squats', sets:6, reps:'35', notes:'5 more reps than Phase 1.' },
+      { name:'Goblet Squat (heavy)', sets:4, reps:'12–15', notes:'Heavier than Phase 1.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'12/side', notes:'Heavier dumbbell.' },
+      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension.' },
+      { name:'Jump Squats', sets:3, reps:'10', notes:'Land soft.' },
+      { name:'Sit-ups', sets:6, reps:'Max reps', notes:'One more set than Phase 1.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'' },
+      { name:'Plank Holds', sets:3, reps:'60 sec each', notes:'' },
+      { name:'Fatigue Run', sets:1, reps:'1 mile easy', notes:'Easy pace.' },
+    ],
+    dl: [
+      { name:'Bodyweight Squats', sets:3, reps:'20', notes:'Easy and controlled.' },
+      { name:'Goblet Squat', sets:3, reps:'12', notes:'Light weight.' },
+      { name:'Sit-ups', sets:3, reps:'15 (submaximal)', notes:'' },
+      { name:'Leg Raises', sets:2, reps:'12', notes:'' },
+      { name:'Plank Holds', sets:2, reps:'45 sec each', notes:'' },
+      { name:'Mobility Work', sets:1, reps:'15 min', notes:'Hip flexors + hamstrings. Replace fatigue run with extended mobility session.' },
+    ],
+    p3: [
+      { name:'Bodyweight Squats', sets:6, reps:'45', notes:'Highest bodyweight squat count so far.' },
+      { name:'Goblet Squat (heavy)', sets:4, reps:'12–15', notes:'Heavy. Heavier than Phase 2.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'12/side', notes:'Heavy dumbbell.' },
+      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension.' },
+      { name:'Jump Squats', sets:3, reps:'10', notes:'Land soft.' },
+      { name:'Sit-ups', sets:6, reps:'Max reps', notes:'' },
+      { name:'Weighted Sit-ups', sets:3, reps:'15', notes:'NEW: Light plate on chest. Overloads the movement.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'' },
+      { name:'Plank Holds', sets:3, reps:'60 sec each', notes:'' },
+      { name:'Fatigue Run', sets:1, reps:'1.5 miles easy', notes:'Extended from Phase 1–2. Harder competition simulation.' },
+    ],
+    p4: [
+      { name:'Bodyweight Squats', sets:7, reps:'50', notes:'Peak squat volume. Full form required throughout.' },
+      { name:'Goblet Squat (heavy)', sets:4, reps:'15', notes:'Heavy.' },
+      { name:'Bulgarian Split Squat', sets:4, reps:'12/side', notes:'Heavy dumbbell.' },
+      { name:'Box Jumps', sets:4, reps:'8', notes:'Full hip extension.' },
+      { name:'Jump Squats', sets:3, reps:'10', notes:'Land soft.' },
+      { name:'Sit-ups', sets:7, reps:'Max reps, near true failure', notes:'Peak sit-up volume of the entire program.' },
+      { name:'Weighted Sit-ups', sets:3, reps:'15', notes:'Heavy plate.' },
+      { name:'Leg Raises', sets:3, reps:'15', notes:'' },
+      { name:'Plank Holds', sets:3, reps:'60 sec each', notes:'' },
+      { name:'Fatigue Run', sets:1, reps:'1.5–2 miles easy', notes:'Longest fatigue run of the program.' },
+    ],
+    tp: [
+      { name:'Bodyweight Squats', sets:3, reps:'25', notes:'Crisp, competition-form reps.' },
+      { name:'Sit-ups', sets:3, reps:"Max reps — don't grind", notes:'' },
+      { name:'Plank Holds', sets:2, reps:'45 sec each', notes:'' },
+    ],
+  },
+};
+
+const SCHEDULE = [
+  { week:1, phase:'Phase 1', pullups:'3×max', pushups:'4×max', squats:'4×25', sprints:'6×100m+3×200m', run:'20 min', note:'Time trial Day 14' },
+  { week:2, phase:'Phase 1', pullups:'3×max', pushups:'4×max', squats:'4×25', sprints:'6×100m+3×200m', run:'20 min+trial', note:'' },
+  { week:3, phase:'Phase 2', pullups:'4×max', pushups:'5×max', squats:'5×30', sprints:'8×100m+3×200m', run:'25 min', note:'' },
+  { week:4, phase:'Phase 2', pullups:'4×max', pushups:'5×max', squats:'5×30', sprints:'8×100m+4×200m', run:'28 min', note:'' },
+  { week:5, phase:'DELOAD',  pullups:'2×sub', pushups:'3×sub', squats:'3×20', sprints:'4×100m easy', run:'15 min', note:'Time trial Day 35' },
+  { week:6, phase:'Phase 3', pullups:'5×max+wt', pushups:'5×max+wt', squats:'5×40', sprints:'4×200+3×300', run:'30+tempo', note:'Weighted work begins' },
+  { week:7, phase:'Phase 3', pullups:'5×max+wt', pushups:'5×max+wt', squats:'5×40', sprints:'4×200+3×300', run:'30+tempo', note:'' },
+  { week:8, phase:'Phase 4', pullups:'6×max', pushups:'6×max', squats:'5×45–50', sprints:'2×200+4×300', run:'35+tempo', note:'Time trial Day 56' },
+  { week:9, phase:'Phase 4', pullups:'5×max', pushups:'6×max', squats:'5×45–50', sprints:'2×200+4×300', run:'35+tempo', note:'' },
+  { week:10, phase:'TAPER', pullups:'3×max', pushups:'3×max', squats:'3×30', sprints:'3×100+1×300', run:'20 min', note:'Final trial Day 57' },
+];
+
+// ─── STATE ──────────────────────────────────────────────────────────────────
+
+let state = JSON.parse(localStorage.getItem('madState') || '{}');
+state.week = state.week || 1;
+state.day  = state.day  !== undefined ? state.day : new Date().getDay(); // 0=Sun...6=Sat → map
+// Map JS day to our day index (0=Mon...6=Sun)
+if (state.day === undefined || state.day === null) {
+  const jsDay = new Date().getDay();
+  state.day = jsDay === 0 ? 6 : jsDay - 1;
+}
+state.completedSets = state.completedSets || {}; // key: "week-dayIdx-exIdx-setIdx"
+state.checklist     = state.checklist     || {}; // key: "week-dayIdx-type-itemIdx"
+state.trials        = state.trials        || {};
+
+let timerInterval = null;
+let timerSeconds = 0;
+let expandedExercise = null;
+
+function saveState() {
+  localStorage.setItem('madState', JSON.stringify(state));
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+
+window.addEventListener('DOMContentLoaded', () => {
+  renderDayGrid();
+  renderWorkout();
+  renderSchedule();
+  renderProgress();
+  loadTrials();
+});
+
+// ─── NAVIGATION ─────────────────────────────────────────────────────────────
+
+function showScreen(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  btn.classList.add('active');
+  if (name === 'progress') { renderProgress(); updateDeltas(); }
+}
+
+// ─── WEEK / DAY ──────────────────────────────────────────────────────────────
+
+function changeWeek(delta) {
+  state.week = Math.max(1, Math.min(10, state.week + delta));
+  document.getElementById('weekNum').textContent = state.week;
+  saveState();
+  renderDayGrid();
+  renderWorkout();
+  updateHeader();
+}
+
+function selectDay(idx) {
+  state.day = idx;
+  saveState();
+  renderDayGrid();
+  renderWorkout();
+  updateHeader();
+}
+
+function renderDayGrid() {
+  const grid = document.getElementById('dayGrid');
+  grid.innerHTML = DAYS.map((d, i) => {
+    const done = isDayComplete(state.week, i);
+    const active = state.day === i;
+    const rest = i === 3;
+    return `<div class="day-pill ${active?'active':''} ${rest?'rest':''} ${done?'done':''}" onclick="selectDay(${i})">
+      <div class="pill-day">${d}</div>
+      <div class="pill-icon">${DAY_ICONS[i]}</div>
+      <div class="pill-dot"></div>
+    </div>`;
+  }).join('');
+}
+
+function isDayComplete(week, dayIdx) {
+  const workout = WORKOUTS[dayIdx];
+  if (!workout) return false;
+  const phase = getPhase(week);
+  const exercises = workout[phase.key];
+  if (!exercises) return false;
+  return exercises.every((ex, exIdx) => {
+    for (let s = 0; s < ex.sets; s++) {
+      if (!state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]) return false;
+    }
+    return true;
+  });
+}
+
+function updateHeader() {
+  const phase = getPhase(state.week);
+  document.getElementById('headerPhase').textContent = phase.label.toUpperCase();
+  document.getElementById('headerDay').textContent = DAY_NAMES[state.day];
+  document.getElementById('headerSub').textContent = `${DAY_EVENTS[state.day]} · Week ${state.week}`;
+}
+
+// ─── WORKOUT RENDER ──────────────────────────────────────────────────────────
+
+function renderWorkout() {
+  updateHeader();
+  const content = document.getElementById('workoutContent');
+  const dayIdx = state.day;
+  const week = state.week;
+  const phase = getPhase(week);
+
+  if (dayIdx === 3) {
+    content.innerHTML = `<div class="rest-cta">
+      <div class="rest-emoji">😴</div>
+      <div class="rest-title">Rest Day</div>
+      <div class="rest-sub">Thursday is your only full rest day. Don't fill it.<br><br>Sleep 7–9 hours. Prioritise protein intake.</div>
+    </div>`;
+    return;
+  }
+
+  const workout = WORKOUTS[dayIdx];
+  if (!workout) { content.innerHTML = ''; return; }
+
+  const exercises = workout[phase.key] || [];
+
+  // Phase banner
+  const bannerClass = phase.type === 'deload' ? 'deload' : phase.type === 'taper' ? 'taper' : 'normal';
+  let html = `<div class="phase-banner ${bannerClass}"><strong>${phase.label} — Weeks ${phase.weeks.join('–')}</strong>${phase.desc}</div>`;
+
+  // Warmup
+  html += `<div class="section-header"><div class="section-title">Warm-Up</div></div>`;
+  html += `<div class="card"><ul class="checklist" id="warmup-list">`;
+  workout.warmup.forEach((item, i) => {
+    const key = `${week}-${dayIdx}-warmup-${i}`;
+    const checked = state.checklist[key] ? 'checked' : '';
+    html += `<li class="${checked}" onclick="toggleChecklist('${key}', this)">
+      <div class="check-box">${state.checklist[key] ? '✓' : ''}</div>
+      <span class="check-text">${item}</span>
+    </li>`;
+  });
+  html += `</ul></div>`;
+
+  // Main session
+  html += `<div class="section-header"><div class="section-title">Session</div><div class="section-tag">${DAY_EVENTS[dayIdx]}</div></div>`;
+  exercises.forEach((ex, exIdx) => {
+    html += renderExercise(ex, exIdx, week, dayIdx, phase);
+  });
+
+  // Cooldown
+  html += `<div class="section-header"><div class="section-title">Cool-Down</div></div>`;
+  html += `<div class="card"><ul class="checklist">`;
+  workout.cooldown.forEach((item, i) => {
+    const key = `${week}-${dayIdx}-cooldown-${i}`;
+    const checked = state.checklist[key] ? 'checked' : '';
+    html += `<li class="${checked}" onclick="toggleChecklist('${key}', this)">
+      <div class="check-box">${state.checklist[key] ? '✓' : ''}</div>
+      <span class="check-text">${item}</span>
+    </li>`;
+  });
+  html += `</ul></div>`;
+
+  // Complete button
+  const allDone = isDayComplete(week, dayIdx);
+  if (!allDone) {
+    html += `<button class="complete-all-btn" onclick="completeAll()">Mark All Sets Done ✓</button>`;
+  } else {
+    html += `<div style="text-align:center;padding:16px;color:var(--green);font-weight:700;font-size:16px">✓ Session Complete!</div>`;
+  }
+
+  content.innerHTML = html;
+}
+
+function renderExercise(ex, exIdx, week, dayIdx, phase) {
+  const allDone = Array.from({length: ex.sets}, (_, s) => state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]).every(Boolean);
+  const doneSets = Array.from({length: ex.sets}, (_, s) => state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`]).filter(Boolean).length;
+  const isExpanded = expandedExercise === `${dayIdx}-${exIdx}`;
+
+  const dots = Array.from({length: ex.sets}, (_, s) => {
+    const done = state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`];
+    return `<div class="set-dot ${done ? 'done' : ''}" onclick="event.stopPropagation();toggleSet(${week},${dayIdx},${exIdx},${s})"></div>`;
+  }).join('');
+
+  const weighted = isWeightedExercise(ex.name);
+  let setRows = '';
+  for (let s = 0; s < ex.sets; s++) {
+    const key = `${week}-${dayIdx}-${exIdx}-${s}`;
+    const done = state.completedSets[key];
+    const savedReps = state.completedSets[key + '-reps'] || '';
+    const savedWeight = state.completedSets[key + '-weight'] || '';
+    const weightField = weighted ? `<div class="input-group">
+      <input class="weight-input" type="number" placeholder="lbs" value="${savedWeight}"
+        onchange="saveWeight(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+      <div class="input-label">lbs</div>
+    </div>` : '';
+    setRows += `<div class="set-row">
+      <div class="set-label">Set ${s + 1}</div>
+      <div class="set-check ${done ? 'done' : ''}" onclick="toggleSet(${week},${dayIdx},${exIdx},${s})">${done ? '✓' : ''}</div>
+      <div class="input-group">
+        <input class="reps-input" type="text" placeholder="reps" value="${savedReps}"
+          onchange="saveReps(${week},${dayIdx},${exIdx},${s},this.value)" onclick="event.stopPropagation()">
+        <div class="input-label">reps</div>
+      </div>
+      ${weightField}
+      <div class="set-notes">${s === 0 ? ex.reps : ''}</div>
+    </div>`;
+  }
+
+  return `<div class="exercise ${allDone ? 'completed' : ''} ${isExpanded ? 'expanded' : ''}" id="ex-${dayIdx}-${exIdx}">
+    <div class="exercise-header" onclick="toggleExpand(${dayIdx},${exIdx})">
+      <div>
+        <div class="exercise-name">${ex.name}</div>
+        <div class="exercise-meta">${ex.sets} sets · ${ex.reps}</div>
+      </div>
+      <div class="exercise-progress">
+        <div class="set-dots">${dots}</div>
+        <div class="complete-badge">${allDone ? '✓ Done' : `${doneSets}/${ex.sets}`}</div>
+      </div>
+    </div>
+    ${isExpanded ? `<div class="sets-tracker">${setRows}</div>` : ''}
+    ${isExpanded && ex.notes ? `<div class="exercise-notes">${ex.notes}</div>` : ''}
+  </div>`;
+}
+
+function toggleExpand(dayIdx, exIdx) {
+  const key = `${dayIdx}-${exIdx}`;
+  expandedExercise = expandedExercise === key ? null : key;
+  renderWorkout();
+}
+
+function toggleSet(week, dayIdx, exIdx, setIdx) {
+  const key = `${week}-${dayIdx}-${exIdx}-${setIdx}`;
+  if (state.completedSets[key]) {
+    delete state.completedSets[key];
+  } else {
+    state.completedSets[key] = true;
+    // Auto-start rest timer
+    const ex = WORKOUTS[dayIdx]?.[getPhase(week).key]?.[exIdx];
+    if (ex) startTimer(ex.name.includes('Run') || ex.name.includes('Jog') ? 0 : 120);
+  }
+  saveState();
+  renderWorkout();
+}
+
+function saveReps(week, dayIdx, exIdx, setIdx, val) {
+  state.completedSets[`${week}-${dayIdx}-${exIdx}-${setIdx}-reps`] = val;
+  saveState();
+}
+
+function saveWeight(week, dayIdx, exIdx, setIdx, val) {
+  state.completedSets[`${week}-${dayIdx}-${exIdx}-${setIdx}-weight`] = val;
+  saveState();
+}
+
+function isWeightedExercise(name) {
+  const keywords = ['Goblet','Dumbbell','Pulldown','Bent-Over Row','Weighted','Lat Pull','Barbell','Cable'];
+  return keywords.some(k => name.includes(k));
+}
+
+function toggleChecklist(key, el) {
+  const checked = !state.checklist[key];
+  state.checklist[key] = checked;
+  saveState();
+  el.classList.toggle('checked', checked);
+  const box = el.querySelector('.check-box');
+  if (box) box.textContent = checked ? '✓' : '';
+}
+
+function completeAll() {
+  const week = state.week;
+  const dayIdx = state.day;
+  const phase = getPhase(week);
+  const exercises = WORKOUTS[dayIdx]?.[phase.key] || [];
+  exercises.forEach((ex, exIdx) => {
+    for (let s = 0; s < ex.sets; s++) {
+      state.completedSets[`${week}-${dayIdx}-${exIdx}-${s}`] = true;
+    }
+  });
+  saveState();
+  renderWorkout();
+  showToast('Session Complete! 🔥');
+}
+
+// ─── REST TIMER ──────────────────────────────────────────────────────────────
+
+function startTimer(seconds) {
+  if (seconds === 0) return;
+  if (timerInterval) clearInterval(timerInterval);
+  timerSeconds = seconds;
+  updateTimerDisplay();
+  document.getElementById('timerBar').classList.add('visible');
+  timerInterval = setInterval(() => {
+    timerSeconds--;
+    if (timerSeconds <= 0) {
+      stopTimer();
+      showToast('Rest complete — go!');
+    } else {
+      updateTimerDisplay();
+    }
+  }, 1000);
+}
+
+function stopTimer() {
+  if (timerInterval) clearInterval(timerInterval);
+  timerInterval = null;
+  document.getElementById('timerBar').classList.remove('visible');
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds / 60);
+  const s = timerSeconds % 60;
+  document.getElementById('timerCount').textContent = `${m}:${String(s).padStart(2,'0')}`;
+}
+
+// ─── TOAST ──────────────────────────────────────────────────────────────────
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// ─── PROGRESS ────────────────────────────────────────────────────────────────
+
+function renderProgress() {
+  // Count completed sessions
+  let sessions = 0;
+  let totalSets = 0;
+  const seen = new Set();
+  for (const key of Object.keys(state.completedSets)) {
+    if (key.includes('-reps')) continue;
+    const [w, d] = key.split('-');
+    const dayKey = `${w}-${d}`;
+    if (!seen.has(dayKey)) { seen.add(dayKey); sessions++; }
+    totalSets++;
+  }
+
+  document.getElementById('statGrid').innerHTML = `
+    <div class="stat-box"><div class="stat-num">${state.week}</div><div class="stat-label">Current Week</div></div>
+    <div class="stat-box"><div class="stat-num">${sessions}</div><div class="stat-label">Sessions Done</div></div>
+    <div class="stat-box"><div class="stat-num">${totalSets}</div><div class="stat-label">Sets Logged</div></div>
+    <div class="stat-box"><div class="stat-num">${Math.round((state.week-1)/10*100)}%</div><div class="stat-label">Program Progress</div></div>
+  `;
+}
+
+function loadTrials() {
+  const t = state.trials;
+  ['run-14','run-35','run-56','run-57','pu-base','pu-now','push-base','push-now'].forEach(k => {
+    const el = document.getElementById('trial-' + k);
+    if (el && t[k]) el.value = t[k];
+  });
+  updateDeltas();
+}
+
+function saveTrials() {
+  ['run-14','run-35','run-56','run-57','pu-base','pu-now','push-base','push-now'].forEach(k => {
+    const el = document.getElementById('trial-' + k);
+    if (el) state.trials[k] = el.value;
+  });
+  saveState();
+}
+
+function parseTime(s) {
+  if (!s) return null;
+  const parts = s.split(':');
+  if (parts.length === 2) return parseInt(parts[0]) * 60 + parseInt(parts[1]);
+  return parseFloat(s);
+}
+
+function updateDeltas() {
+  const base = parseTime(state.trials['run-14']);
+  const times = ['run-35','run-56','run-57'].map(k => ({ k, v: parseTime(state.trials[k]) }));
+  times.forEach(({k, v}) => {
+    const el = document.getElementById('delta-' + k);
+    if (!el) return;
+    if (base && v) {
+      const diff = base - v; // negative = faster = good
+      const pct = (diff / base * 100).toFixed(1);
+      el.textContent = diff > 0 ? `-${Math.abs(pct)}%` : `+${Math.abs(pct)}%`;
+      el.style.color = diff > 0 ? 'var(--green)' : 'var(--red)';
+    } else { el.textContent = '—'; el.style.color = ''; }
+  });
+
+  const puBase = parseInt(state.trials['pu-base']);
+  const puNow = parseInt(state.trials['pu-now']);
+  const puEl = document.getElementById('delta-pu-now');
+  if (puEl && puBase && puNow) {
+    const pct = ((puNow - puBase) / puBase * 100).toFixed(0);
+    puEl.textContent = `+${pct}%`;
+    puEl.style.color = puNow > puBase ? 'var(--green)' : 'var(--red)';
+  }
+
+  const pushBase = parseInt(state.trials['push-base']);
+  const pushNow = parseInt(state.trials['push-now']);
+  const pushEl = document.getElementById('delta-push-now');
+  if (pushEl && pushBase && pushNow) {
+    const pct = ((pushNow - pushBase) / pushBase * 100).toFixed(0);
+    pushEl.textContent = `+${pct}%`;
+    pushEl.style.color = pushNow > pushBase ? 'var(--green)' : 'var(--red)';
+  }
+
+  // Event scores
+  const runScore = base && parseTime(state.trials['run-57']) ? ((base - parseTime(state.trials['run-57'])) / base * 100 * 1.5).toFixed(1) : null;
+  document.getElementById('score-run').textContent = runScore ? runScore + ' pts' : '—';
+
+  const puScore = puBase && puNow ? ((puNow - puBase) / puBase * 100 * 1.25).toFixed(1) : null;
+  document.getElementById('score-pullups').textContent = puScore ? puScore + ' pts' : '—';
+
+  const pushScore = pushBase && pushNow ? ((pushNow - pushBase) / pushBase * 100 * 1.0).toFixed(1) : null;
+  document.getElementById('score-pushups').textContent = pushScore ? pushScore + ' pts' : '—';
+}
+
+// ─── SCHEDULE ────────────────────────────────────────────────────────────────
+
+function renderSchedule() {
+  const el = document.getElementById('scheduleGrid');
+  el.innerHTML = SCHEDULE.map(row => {
+    const isCurrentWeek = row.week === state.week;
+    const isDone = row.week < state.week;
+    return `<div style="padding:12px 0;border-bottom:1px solid var(--border);${isCurrentWeek ? 'background:rgba(232,200,74,0.05);margin:0 -16px;padding:12px 16px;border-radius:10px;' : ''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <div style="font-size:14px;font-weight:700;color:${isCurrentWeek ? 'var(--accent)' : isDone ? 'var(--muted)' : 'var(--text)'}">
+          Week ${row.week} ${isCurrentWeek ? '← You are here' : isDone ? '✓' : ''}
+        </div>
+        <div style="font-size:11px;font-weight:700;color:var(--muted)">${row.phase}</div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;font-size:12px;color:var(--muted)">
+        <div>Pull-ups: <span style="color:var(--text)">${row.pullups}</span></div>
+        <div>Push-ups: <span style="color:var(--text)">${row.pushups}</span></div>
+        <div>Squats: <span style="color:var(--text)">${row.squats}</span></div>
+        <div>Sprints: <span style="color:var(--text)">${row.sprints}</span></div>
+        <div>Run: <span style="color:var(--text)">${row.run}</span></div>
+        ${row.note ? `<div style="color:var(--accent)">${row.note}</div>` : '<div></div>'}
+      </div>
+    </div>`;
+  }).join('');
+}
+</script>
+</body>
+</html>

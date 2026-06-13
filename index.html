@@ -869,8 +869,8 @@
 
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
-const DAY_ICONS = ['💪','🦵','🤸','😴','⚡','🏃','🔥'];
-const DAY_EVENTS = ['Pull-ups & Back','Lower Body & Core','Push — Chest & Shoulders','REST','Sprint Work & Power','Long Run — Aerobic Base','Legs, Core & Conditioning'];
+const DAY_ICONS = ['💪','🦵','🏃','😴','⚡','🤸','🔥'];
+const DAY_EVENTS = ['Pull-ups & Back','Lower Body & Core','Long Run — Aerobic Base','REST','Sprint Work & Power','Push — Chest & Shoulders','Legs, Core & Conditioning'];
 
 const PHASES = [
   { key:'p1', label:'Phase 1', weeks:[1,2], type:'normal', desc:'Form foundation. Stop before failure. Neural adaptation.' },
@@ -989,6 +989,77 @@ const WORKOUTS = {
     ],
   },
   2: {
+    warmup: ['5 min walk','Dynamic leg swings — 10 each direction','Easy 5 min jog to ease into pace'],
+    cooldown: ['5–10 min walk — mandatory, not optional','Full lower body stretch circuit — 10 min','Foam roll: calves, quads, IT band'],
+    p1: [
+      { name:'Easy Continuous Run', sets:1, reps:'20 min', notes:'Conversational pace throughout. Same route each time.' },
+      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 14 only', notes:'Baseline measurement. Go on fresh legs. Not a training session.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run. Comfortable fast running. Teaches leg turnover.' },
+    ],
+    p2: [
+      { name:'Easy Continuous Run', sets:1, reps:'25–28 min', notes:'Conversational pace. Longer than Phase 1.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run.' },
+    ],
+    dl: [
+      { name:'Easy Jog', sets:1, reps:'15 min — very easy', notes:'No strides. No effort. Pure recovery run.' },
+      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 35 only', notes:'Mid-point measurement. Compare to Day 14 baseline.' },
+    ],
+    p3: [
+      { name:'Easy Continuous Run', sets:1, reps:'30 min', notes:'Conversational pace to start.' },
+      { name:'Tempo Intervals', sets:2, reps:'8 min each', notes:'NEW: Comfortably hard — 3–4 words max. 90 sec easy jog between. After the easy run.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
+    ],
+    p4: [
+      { name:'Easy Continuous Run', sets:1, reps:'35 min', notes:'Conversational pace.' },
+      { name:'Tempo Intervals', sets:2, reps:'10 min each', notes:'2 min longer per rep than Phase 3. 90 sec easy jog between.' },
+      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 56 only', notes:'Third measurement. Compare your progression.' },
+      { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
+    ],
+    tp: [
+      { name:'Easy Jog', sets:1, reps:'20 min — very easy', notes:'No effort. Flush and recover.' },
+      { name:'Final 1.5-Mile Trial', sets:1, reps:'Day 57', notes:'Final pre-competition measurement.' },
+    ],
+  },
+  3: null,
+  4: {
+    warmup: ['10 min easy jog','High knees — 2×20m','Butt kicks — 2×20m','A-skips — 2×20m','2–3 build-up strides at 75% effort'],
+    cooldown: ['10 min easy walk — mandatory','Standing quad stretch — 60 sec/side','Hamstring stretch — 60 sec/side','Hip flexor lunge stretch — 60 sec/side'],
+    p1: [
+      { name:'100m Sprint Intervals', sets:6, reps:'Full effort each', notes:'3–4 min full recovery between reps. Quality over quantity.' },
+      { name:'200m Sprint Intervals', sets:3, reps:'85% effort', notes:'3 min recovery. Bridges the gap toward 300m distance.' },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension at top. Explosive leg power. Carries into sprint drive phase.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Flushes lactate. Also your daily aerobic mile.' },
+    ],
+    p2: [
+      { name:'100m Sprint Intervals', sets:8, reps:'Full effort each', notes:'Full recovery. 2 more reps than Phase 1.' },
+      { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'3 min recovery. One more rep than Phase 1.' },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    dl: [
+      { name:'100m Light Strides', sets:4, reps:'70% effort only', notes:'Comfortable and controlled. Not a sprint session.' },
+      { name:'Box Jumps', sets:3, reps:'5', notes:"Easy — don't push it." },
+      { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+    p3: [
+      { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'Warm-up for the 300m work. 3 min recovery.' },
+      { name:'300m Race-Pace Efforts', sets:3, reps:'Full race pace', notes:"NEW: 5 min full recovery between reps. Learn your pacing — don't die in the first 100m." },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    p4: [
+      { name:'200m Warm-Up Efforts', sets:2, reps:'80% effort', notes:'Primer only. Not the focus.' },
+      { name:'300m Race-Pace Efforts', sets:4, reps:'Full race pace', notes:'5 min full recovery. This is your key session of the week.' },
+      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
+    ],
+    tp: [
+      { name:'100m Strides', sets:3, reps:'85% effort', notes:'Fast but not all-out.' },
+      { name:'300m Timed Effort', sets:1, reps:'Race pace', notes:'One sharp effort. Note your time.' },
+      { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
+    ],
+  },
+  5: {
     warmup: ['Band pull-aparts — 2×15','Shoulder pass-throughs with PVC — 2×10','Slow push-up warm-up — 2×8','Wrist circles — 30 sec'],
     cooldown: ['Doorway chest stretch — 60 sec','Cross-body shoulder stretch — 30 sec/side','Tricep overhead stretch — 30 sec/side'],
     p1: [
@@ -1033,77 +1104,6 @@ const WORKOUTS = {
     tp: [
       { name:'Push-ups (strict)', sets:3, reps:"Max reps — don't grind", notes:'Competition sharpener.' },
       { name:'Easy Mile Run', sets:1, reps:'Optional — very easy', notes:'' },
-    ],
-  },
-  3: null,
-  4: {
-    warmup: ['10 min easy jog','High knees — 2×20m','Butt kicks — 2×20m','A-skips — 2×20m','2–3 build-up strides at 75% effort'],
-    cooldown: ['10 min easy walk — mandatory','Standing quad stretch — 60 sec/side','Hamstring stretch — 60 sec/side','Hip flexor lunge stretch — 60 sec/side'],
-    p1: [
-      { name:'100m Sprint Intervals', sets:6, reps:'Full effort each', notes:'3–4 min full recovery between reps. Quality over quantity.' },
-      { name:'200m Sprint Intervals', sets:3, reps:'85% effort', notes:'3 min recovery. Bridges the gap toward 300m distance.' },
-      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension at top. Explosive leg power. Carries into sprint drive phase.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Flushes lactate. Also your daily aerobic mile.' },
-    ],
-    p2: [
-      { name:'100m Sprint Intervals', sets:8, reps:'Full effort each', notes:'Full recovery. 2 more reps than Phase 1.' },
-      { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'3 min recovery. One more rep than Phase 1.' },
-      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
-    ],
-    dl: [
-      { name:'100m Light Strides', sets:4, reps:'70% effort only', notes:'Comfortable and controlled. Not a sprint session.' },
-      { name:'Box Jumps', sets:3, reps:'5', notes:"Easy — don't push it." },
-      { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
-    ],
-    p3: [
-      { name:'200m Sprint Intervals', sets:4, reps:'85–90% effort', notes:'Warm-up for the 300m work. 3 min recovery.' },
-      { name:'300m Race-Pace Efforts', sets:3, reps:'Full race pace', notes:"NEW: 5 min full recovery between reps. Learn your pacing — don't die in the first 100m." },
-      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
-    ],
-    p4: [
-      { name:'200m Warm-Up Efforts', sets:2, reps:'80% effort', notes:'Primer only. Not the focus.' },
-      { name:'300m Race-Pace Efforts', sets:4, reps:'Full race pace', notes:'5 min full recovery. This is your key session of the week.' },
-      { name:'Box Jumps', sets:4, reps:'6', notes:'Full hip extension.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'1 mile', notes:'Conversational pace.' },
-    ],
-    tp: [
-      { name:'100m Strides', sets:3, reps:'85% effort', notes:'Fast but not all-out.' },
-      { name:'300m Timed Effort', sets:1, reps:'Race pace', notes:'One sharp effort. Note your time.' },
-      { name:'Easy Mile Cooldown', sets:1, reps:'Optional — very easy', notes:'' },
-    ],
-  },
-  5: {
-    warmup: ['5 min walk','Dynamic leg swings — 10 each direction','Easy 5 min jog to ease into pace'],
-    cooldown: ['5–10 min walk — mandatory, not optional','Full lower body stretch circuit — 10 min','Foam roll: calves, quads, IT band'],
-    p1: [
-      { name:'Easy Continuous Run', sets:1, reps:'20 min', notes:'Conversational pace throughout. Same route each time.' },
-      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 14 only', notes:'Baseline measurement. Go on fresh legs. Not a training session.' },
-      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run. Comfortable fast running. Teaches leg turnover.' },
-    ],
-    p2: [
-      { name:'Easy Continuous Run', sets:1, reps:'25–28 min', notes:'Conversational pace. Longer than Phase 1.' },
-      { name:'Strides', sets:4, reps:'20 sec each', notes:'End of run.' },
-    ],
-    dl: [
-      { name:'Easy Jog', sets:1, reps:'15 min — very easy', notes:'No strides. No effort. Pure recovery run.' },
-      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 35 only', notes:'Mid-point measurement. Compare to Day 14 baseline.' },
-    ],
-    p3: [
-      { name:'Easy Continuous Run', sets:1, reps:'30 min', notes:'Conversational pace to start.' },
-      { name:'Tempo Intervals', sets:2, reps:'8 min each', notes:'NEW: Comfortably hard — 3–4 words max. 90 sec easy jog between. After the easy run.' },
-      { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
-    ],
-    p4: [
-      { name:'Easy Continuous Run', sets:1, reps:'35 min', notes:'Conversational pace.' },
-      { name:'Tempo Intervals', sets:2, reps:'10 min each', notes:'2 min longer per rep than Phase 3. 90 sec easy jog between.' },
-      { name:'1.5-Mile Time Trial', sets:1, reps:'Day 56 only', notes:'Third measurement. Compare your progression.' },
-      { name:'Strides', sets:4, reps:'20 sec each', notes:'After tempo work.' },
-    ],
-    tp: [
-      { name:'Easy Jog', sets:1, reps:'20 min — very easy', notes:'No effort. Flush and recover.' },
-      { name:'Final 1.5-Mile Trial', sets:1, reps:'Day 57', notes:'Final pre-competition measurement.' },
     ],
   },
   6: {
